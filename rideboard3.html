@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ride Board App</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            background: #fff;
+            margin-top: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 80%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .ride-card {
+            background: #e8f0fe;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #rideList {
+            text-align: left;
+        }
+
+        .top-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .small-input {
+            width: 60%;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Page -->
+        <div id="homePage">
+            <h1>Ride Board App</h1>
+            <div class="top-buttons">
+                <button id="needRideBtn">I Need a Ride</button>
+                <button id="driverBtn">I Am a Driver</button>
+            </div>
+            <input type="text" id="townInput" placeholder="Enter Town">
+            <button id="searchTownBtn">Show Rides in Town</button>
+            <button id="viewBoardBtn">View All Rides</button>
+        </div>
+
+        <!-- Ride Form Page -->
+        <div id="rideFormPage" class="hidden">
+            <h2>Post a Ride</h2>
+            <input type="text" id="startAddressInput" placeholder="Starting Address"><br>
+            <input type="text" id="startTownInput" placeholder="Starting Town"><br>
+            <input type="text" id="endInput" placeholder="Destination"><br>
+            <input type="number" id="peopleInput" placeholder="Number of People"><br>
+            <input type="number" id="offerInput" placeholder="Offer Amount ($)"><br>
+            <input type="text" id="contactInput" placeholder="Phone or Email"><br>
+            <div class="top-buttons">
+                <button id="postRideBtn">Post Ride</button>
+                <button id="backBtn">Back</button>
+                <button id="homeBtn">Home</button>
+            </div>
+        </div>
+
+        <!-- Ride List Page -->
+        <div id="rideListPage" class="hidden">
+            <h2>Available Rides</h2>
+            <div id="rideList"></div>
+            <div class="top-buttons">
+                <button id="backBtn2">Back</button>
+                <button id="homeBtn2">Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const homePage = document.getElementById('homePage');
+        const rideFormPage = document.getElementById('rideFormPage');
+        const rideListPage = document.getElementById('rideListPage');
+        const rideListDiv = document.getElementById('rideList');
+
+        const needRideBtn = document.getElementById('needRideBtn');
+        const driverBtn = document.getElementById('driverBtn');
+        const viewBoardBtn = document.getElementById('viewBoardBtn');
+        const postRideBtn = document.getElementById('postRideBtn');
+        const backBtn = document.getElementById('backBtn');
+        const backBtn2 = document.getElementById('backBtn2');
+        const homeBtn = document.getElementById('homeBtn');
+        const homeBtn2 = document.getElementById('homeBtn2');
+        const searchTownBtn = document.getElementById('searchTownBtn');
+
+        const startAddressInput = document.getElementById('startAddressInput');
+        const startTownInput = document.getElementById('startTownInput');
+        const endInput = document.getElementById('endInput');
+        const peopleInput = document.getElementById('peopleInput');
+        const offerInput = document.getElementById('offerInput');
+        const contactInput = document.getElementById('contactInput');
+        const townInput = document.getElementById('townInput');
+
+        // Load or initialize rides
+        let rides = JSON.parse(localStorage.getItem('rides')) || [];
+
+        function showPage(page) {
+            homePage.classList.add('hidden');
+            rideFormPage.classList.add('hidden');
+            rideListPage.classList.add('hidden');
+            page.classList.remove('hidden');
+        }
+
+        function saveRides() {
+            localStorage.setItem('rides', JSON.stringify(rides));
+        }
+
+        function removeOldRides() {
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            rides = rides.filter(ride => now - ride.timestamp < oneDay);
+            saveRides();
+        }
+
+        function renderRides(filterTown = '') {
+            removeOldRides();
+            rideListDiv.innerHTML = '';
+
+            const filteredRides = rides.filter(ride => {
+                if (!filterTown) return true;
+                return ride.startTown.toLowerCase().includes(filterTown.toLowerCase());
+            });
+
+            if (filteredRides.length === 0) {
+                rideListDiv.innerHTML = '<p>No rides available.</p>';
+                return;
+            }
+
+            filteredRides.forEach(ride => {
+                const rideCard = document.createElement('div');
+                rideCard.className = 'ride-card';
+                rideCard.innerHTML = `
+                    <p><strong>From:</strong> ${ride.startAddress}, ${ride.startTown}</p>
+                    <p><strong>To:</strong> ${ride.end}</p>
+                    <p><strong>People:</strong> ${ride.people}</p>
+                    <p><strong>Offer:</strong> $${ride.offer}</p>
+                    <p><strong>Contact:</strong> ${ride.contact}</p>
+                    <p style="font-size: 12px; color: #555;">Posted: ${new Date(ride.timestamp).toLocaleString()}</p>
+                `;
+                rideListDiv.appendChild(rideCard);
+            });
+        }
+
+        // Event listeners
+        homeBtn.addEventListener('click', () => showPage(homePage));
+        homeBtn2.addEventListener('click', () => showPage(homePage));
+        backBtn.addEventListener('click', () => showPage(homePage));
+        backBtn2.addEventListener('click', () => showPage(homePage));
+
+        needRideBtn.addEventListener('click', () => showPage(rideFormPage));
+
+        driverBtn.addEventListener('click', () => {
+            const town = townInput.value.trim();
+            renderRides(town);
+            showPage(rideListPage);
+        });
+
+        viewBoardBtn.addEventListener('click', () => {
+            renderRides();
+            showPage(rideListPage);
+        });
+
+        searchTownBtn.addEventListener('click', () => {
+            const town = townInput.value.trim();
+            if (!town) {
+                alert("Enter a town to search.");
+                return;
+            }
+            renderRides(town);
+            showPage(rideListPage);
+        });
+
+        postRideBtn.addEventListener('click', () => {
+            const newRide = {
+                startAddress: startAddressInput.value.trim(),
+                startTown: startTownInput.value.trim(),
+                end: endInput.value.trim(),
+                people: peopleInput.value.trim(),
+                offer: offerInput.value.trim(),
+                contact: contactInput.value.trim(),
+                timestamp: Date.now()
+            };
+
+            if (!newRide.startAddress || !newRide.startTown || !newRide.end || !newRide.people || !newRide.offer || !newRide.contact) {
+                alert("Please fill out all fields.");
+                return;
+            }
+
+            rides.push(newRide);
+            saveRides();
+
+            // Clear form
+            startAddressInput.value = '';
+            startTownInput.value = '';
+            endInput.value = '';
+            peopleInput.value = '';
+            offerInput.value = '';
+            contactInput.value = '';
+
+            alert("Ride posted!");
+            renderRides();
+            showPage(rideListPage);
+        });
+
+    </script>
+</body>
+</html>
