@@ -120,16 +120,22 @@
 <body>
     <div class="container">
         <!-- Home Page -->
-        <div id="homePage">
-            <h1>Ride Board App</h1>
-            <div class="top-buttons">
-                <button id="needRideBtn">I Need a Ride</button>
-                <button id="driverBtn">I Am a Driver</button>
-            </div>
-            <input type="text" id="townInput" placeholder="Enter Town">
-            <button id="searchTownBtn">Show Rides in Town</button>
-            <button id="viewBoardBtn">View All Rides</button>
-        </div>
+       <div id="homePage">
+    <h1>Ride Board App</h1>
+    <div class="top-buttons">
+        <button id="needRideBtn">I Need a Ride</button>
+        <button id="driverBtn">I Am a Driver</button>
+    </div>
+
+    <input type="text" id="townInput" placeholder="Enter Town">
+    <button id="searchTownBtn">Show Rides in Town</button>
+    <button id="viewBoardBtn">View All Rides</button>
+
+    <!-- Live Ride List on Home Page -->
+    <h2>Available Rides</h2>
+    <div id="homeRideList" style="text-align:left;"></div>
+</div>
+
 
        <!-- Ride Form Page -->
 <div id="rideFormPage" class="hidden">
@@ -330,7 +336,73 @@
                 renderRides();
             }
         }, 60000); // 60,000 ms = 1 min
-    </script>
+
+        <!-- Your home page and form HTML go here -->
+
+
+    // --- JavaScript goes here ---
+    const homeRideList = document.getElementById('homeRideList');
+
+    // Load or initialize rides
+    let rides = JSON.parse(localStorage.getItem('rides')) || [];
+
+    function saveRides() {
+        localStorage.setItem('rides', JSON.stringify(rides));
+    }
+
+    function removeExpiredRides() {
+        const now = Date.now();
+        rides = rides.filter(ride => {
+            const rideTime = new Date(`${ride.date}T${ride.time}`).getTime();
+            return rideTime > now;
+        });
+        saveRides();
+    }
+
+    function renderHomeRides(filterTown = '') {
+        removeExpiredRides();
+        homeRideList.innerHTML = '';
+
+        const filteredRides = rides.filter(ride => {
+            if (!filterTown) return true;
+            return ride.startTown.toLowerCase().includes(filterTown.toLowerCase());
+        });
+
+        if (filteredRides.length === 0) {
+            homeRideList.innerHTML = '<p>No rides available.</p>';
+            return;
+        }
+
+        filteredRides.forEach(ride => {
+            const rideDiv = document.createElement('div');
+            rideDiv.className = 'ride-card';
+            rideDiv.innerHTML = `
+                <p><strong>From:</strong> ${ride.startAddress}, ${ride.startTown}</p>
+                <p><strong>To:</strong> ${ride.end}</p>
+                <p><strong>Date & Time:</strong> ${ride.date} ${ride.time}</p>
+                <p><strong>People:</strong> ${ride.people}</p>
+                <p><strong>Offer:</strong> $${ride.offer}</p>
+                <p><strong>Contact:</strong> ${ride.contact}</p>
+                <p style="font-size: 12px; color: #555;">Posted: ${new Date(ride.timestamp).toLocaleString()}</p>
+            `;
+            homeRideList.appendChild(rideDiv);
+        });
+    }
+
+    // Show all rides initially
+    renderHomeRides();
+
+    // Example of search button
+    const viewBoardBtn = document.getElementById('viewBoardBtn');
+    const searchTownBtn = document.getElementById('searchTownBtn');
+    const townInput = document.getElementById('townInput');
+
+    viewBoardBtn.addEventListener('click', () => renderHomeRides());
+    searchTownBtn.addEventListener('click', () => {
+        const town = townInput.value.trim();
+        renderHomeRides(town);
+    });
+</script>
 </body>
 </html>
 
