@@ -50,7 +50,7 @@
             background: #0056b3;
         }
 
-        input {
+        input, select {
             padding: 10px;
             margin: 5px 0;
             width: 80%;
@@ -72,10 +72,6 @@
             display: none;
         }
 
-        #rideList {
-            text-align: left;
-        }
-
         .top-buttons {
             display: flex;
             justify-content: center;
@@ -84,92 +80,48 @@
             margin-bottom: 15px;
         }
 
-        .small-input {
-            width: 60%;
-        }
-
-        p {
-            margin: 5px 0;
-        }
-
-        /* Mobile responsiveness */
         @media (max-width: 480px) {
-            h1, h2 {
-                font-size: 1.5em;
-            }
-
-            input {
-                width: 95%;
-            }
-
-            button {
-                width: 90%;
-                font-size: 16px;
-            }
-
-            .top-buttons {
-                flex-direction: column;
-            }
-
-            .ride-card {
-                padding: 12px;
-            }
+            h1, h2 { font-size: 1.5em; }
+            input { width: 95%; }
+            button { width: 90%; font-size: 16px; }
+            .top-buttons { flex-direction: column; }
+            .ride-card { padding: 12px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Home Page -->
-       <div id="homePage">
-    <h1>Ride Board App</h1>
-    <div class="top-buttons">
-        <button id="needRideBtn">I Need a Ride</button>
-        <button id="driverBtn">I Am a Driver</button>
-    </div>
-
-    <input type="text" id="townInput" placeholder="Enter Town">
-    <button id="searchTownBtn">Show Rides in Town</button>
-    <button id="viewBoardBtn">View All Rides</button>
-
-    <!-- Live Ride List on Home Page -->
-    <h2>Available Rides</h2>
-    <div id="homeRideList" style="text-align:left;"></div>
-</div>
-
-
-       <!-- Ride Form Page -->
-<div id="rideFormPage" class="hidden">
-    <h2>Post a Ride</h2>
-    <input type="text" id="startAddressInput" placeholder="Starting Address"><br>
-    <input type="text" id="startTownInput" placeholder="Starting Town"><br>
-    <input type="text" id="endInput" placeholder="Destination"><br>
-    
-    <!-- Date and Time inputs -->
-    <label for="dateInput" style="display:block; margin-top:10px;">Date:</label>
-    <input type="date" id="dateInput"><br>
-    
-    <label for="timeInput" style="display:block; margin-top:10px;">Time:</label>
-    <input type="time" id="timeInput"><br>
-
-    <input type="number" id="peopleInput" placeholder="Number of People"><br>
-    <input type="number" id="offerInput" placeholder="Offer Amount ($)"><br>
-    <input type="text" id="contactInput" placeholder="Phone or Email"><br>
-
-    <div class="top-buttons">
-        <button id="postRideBtn">Post Ride</button>
-        <button id="backBtn">Back</button>
-        <button id="homeBtn">Home</button>
-    </div>
-</div>
-
-
-        <!-- Ride List Page -->
-        <div id="rideListPage" class="hidden">
-            <h2>Available Rides</h2>
-            <div id="rideList"></div>
+        <div id="homePage">
+            <h1>Ride Board App</h1>
             <div class="top-buttons">
-                <button id="backBtn2">Back</button>
-                <button id="homeBtn2">Home</button>
+                <button id="needRideBtn">I Need a Ride</button>
+                <button id="driverBtn">I Am a Driver</button>
+            </div>
+            <input type="text" id="townInput" placeholder="Enter Town">
+            <button id="searchTownBtn">Show Rides in Town</button>
+            <button id="viewBoardBtn">View All Rides</button>
+
+            <!-- Live Ride List -->
+            <h2>Available Rides</h2>
+            <div id="homeRideList" style="text-align:left;"></div>
+        </div>
+
+        <!-- Ride Form Page -->
+        <div id="rideFormPage" class="hidden">
+            <h2>Post a Ride</h2>
+            <input type="text" id="startAddressInput" placeholder="Starting Address"><br>
+            <input type="text" id="startTownInput" placeholder="Starting Town"><br>
+            <input type="text" id="endInput" placeholder="Destination"><br>
+            <input type="date" id="dateInput"><br>
+            <input type="time" id="timeInput"><br>
+            <input type="number" id="peopleInput" placeholder="Number of People"><br>
+            <input type="number" id="offerInput" placeholder="Offer Amount ($)"><br>
+            <input type="text" id="contactInput" placeholder="Phone or Email"><br>
+            <div class="top-buttons">
+                <button id="postRideBtn">Post Ride</button>
+                <button id="backBtn">Back</button>
+                <button id="homeBtn">Home</button>
             </div>
         </div>
     </div>
@@ -178,18 +130,15 @@
         // Elements
         const homePage = document.getElementById('homePage');
         const rideFormPage = document.getElementById('rideFormPage');
-        const rideListPage = document.getElementById('rideListPage');
-        const rideListDiv = document.getElementById('rideList');
+        const homeRideList = document.getElementById('homeRideList');
 
         const needRideBtn = document.getElementById('needRideBtn');
         const driverBtn = document.getElementById('driverBtn');
         const viewBoardBtn = document.getElementById('viewBoardBtn');
+        const searchTownBtn = document.getElementById('searchTownBtn');
         const postRideBtn = document.getElementById('postRideBtn');
         const backBtn = document.getElementById('backBtn');
-        const backBtn2 = document.getElementById('backBtn2');
         const homeBtn = document.getElementById('homeBtn');
-        const homeBtn2 = document.getElementById('homeBtn2');
-        const searchTownBtn = document.getElementById('searchTownBtn');
 
         const startAddressInput = document.getElementById('startAddressInput');
         const startTownInput = document.getElementById('startTownInput');
@@ -204,26 +153,22 @@
         // Load or initialize rides
         let rides = JSON.parse(localStorage.getItem('rides')) || [];
 
-        function showPage(page) {
-            homePage.classList.add('hidden');
-            rideFormPage.classList.add('hidden');
-            rideListPage.classList.add('hidden');
-            page.classList.remove('hidden');
-        }
-
         function saveRides() {
             localStorage.setItem('rides', JSON.stringify(rides));
         }
 
-        function removeOldRides() {
+        function removeExpiredRides() {
             const now = Date.now();
-            rides = rides.filter(ride => ride.dateTime > now);
+            rides = rides.filter(ride => {
+                const rideTime = new Date(`${ride.date}T${ride.time}`).getTime();
+                return rideTime > now;
+            });
             saveRides();
         }
 
-        function renderRides(filterTown = '') {
-            removeOldRides();
-            rideListDiv.innerHTML = '';
+        function renderHomeRides(filterTown = '') {
+            removeExpiredRides();
+            homeRideList.innerHTML = '';
 
             const filteredRides = rides.filter(ride => {
                 if (!filterTown) return true;
@@ -231,83 +176,64 @@
             });
 
             if (filteredRides.length === 0) {
-                rideListDiv.innerHTML = '<p>No rides available.</p>';
+                homeRideList.innerHTML = '<p>No rides available.</p>';
                 return;
             }
 
             filteredRides.forEach(ride => {
-                const rideCard = document.createElement('div');
-                rideCard.className = 'ride-card';
-
-                const rideDate = new Date(ride.dateTime);
-                const dateStr = rideDate.toLocaleDateString();
-                const timeStr = rideDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                rideCard.innerHTML = `
+                const rideDiv = document.createElement('div');
+                rideDiv.className = 'ride-card';
+                rideDiv.innerHTML = `
                     <p><strong>From:</strong> ${ride.startAddress}, ${ride.startTown}</p>
                     <p><strong>To:</strong> ${ride.end}</p>
-                    <p><strong>Date:</strong> ${dateStr} <strong>Time:</strong> ${timeStr}</p>
+                    <p><strong>Date & Time:</strong> ${ride.date} ${ride.time}</p>
                     <p><strong>People:</strong> ${ride.people}</p>
                     <p><strong>Offer:</strong> $${ride.offer}</p>
                     <p><strong>Contact:</strong> ${ride.contact}</p>
                     <p style="font-size: 12px; color: #555;">Posted: ${new Date(ride.timestamp).toLocaleString()}</p>
                 `;
-                rideListDiv.appendChild(rideCard);
+                homeRideList.appendChild(rideDiv);
             });
         }
 
-        // Event listeners
-        homeBtn.addEventListener('click', () => showPage(homePage));
-        homeBtn2.addEventListener('click', () => showPage(homePage));
-        backBtn.addEventListener('click', () => showPage(homePage));
-        backBtn2.addEventListener('click', () => showPage(homePage));
+        // Show Page Functions
+        function showPage(page) {
+            homePage.classList.add('hidden');
+            rideFormPage.classList.add('hidden');
+            page.classList.remove('hidden');
+        }
 
+        // Event listeners
         needRideBtn.addEventListener('click', () => showPage(rideFormPage));
+        backBtn.addEventListener('click', () => showPage(homePage));
+        homeBtn.addEventListener('click', () => showPage(homePage));
 
         driverBtn.addEventListener('click', () => {
             const town = townInput.value.trim();
-            renderRides(town);
-            showPage(rideListPage);
+            renderHomeRides(town);
+            showPage(homePage);
         });
 
-        viewBoardBtn.addEventListener('click', () => {
-            renderRides();
-            showPage(rideListPage);
-        });
-
+        viewBoardBtn.addEventListener('click', () => renderHomeRides());
         searchTownBtn.addEventListener('click', () => {
             const town = townInput.value.trim();
-            if (!town) {
-                alert("Enter a town to search.");
-                return;
-            }
-            renderRides(town);
-            showPage(rideListPage);
+            renderHomeRides(town);
         });
 
         postRideBtn.addEventListener('click', () => {
-            const date = dateInput.value;
-            const time = timeInput.value;
-
-            if (!date || !time) {
-                alert("Please enter both date and time for the ride.");
-                return;
-            }
-
-            const rideTimestamp = new Date(`${date}T${time}`).getTime();
-
             const newRide = {
                 startAddress: startAddressInput.value.trim(),
                 startTown: startTownInput.value.trim(),
                 end: endInput.value.trim(),
-                dateTime: rideTimestamp,
+                date: dateInput.value,
+                time: timeInput.value,
                 people: peopleInput.value.trim(),
                 offer: offerInput.value.trim(),
                 contact: contactInput.value.trim(),
-                timestamp: Date.now() // time posted
+                timestamp: Date.now()
             };
 
-            if (!newRide.startAddress || !newRide.startTown || !newRide.end || !newRide.people || !newRide.offer || !newRide.contact) {
+            if (!newRide.startAddress || !newRide.startTown || !newRide.end || !newRide.date || !newRide.time || !newRide.people || !newRide.offer || !newRide.contact) {
                 alert("Please fill out all fields.");
                 return;
             }
@@ -326,83 +252,13 @@
             contactInput.value = '';
 
             alert("Ride posted!");
-            renderRides();
-            showPage(rideListPage);
+            renderHomeRides();
+            showPage(homePage);
         });
 
-        // Auto-refresh rides every minute to remove expired rides
-        setInterval(() => {
-            if (!rideListPage.classList.contains('hidden')) {
-                renderRides();
-            }
-        }, 60000); // 60,000 ms = 1 min
-
-        <!-- Your home page and form HTML go here -->
-
-
-    // --- JavaScript goes here ---
-    const homeRideList = document.getElementById('homeRideList');
-
-    // Load or initialize rides
-    let rides = JSON.parse(localStorage.getItem('rides')) || [];
-
-    function saveRides() {
-        localStorage.setItem('rides', JSON.stringify(rides));
-    }
-
-    function removeExpiredRides() {
-        const now = Date.now();
-        rides = rides.filter(ride => {
-            const rideTime = new Date(`${ride.date}T${ride.time}`).getTime();
-            return rideTime > now;
-        });
-        saveRides();
-    }
-
-    function renderHomeRides(filterTown = '') {
-        removeExpiredRides();
-        homeRideList.innerHTML = '';
-
-        const filteredRides = rides.filter(ride => {
-            if (!filterTown) return true;
-            return ride.startTown.toLowerCase().includes(filterTown.toLowerCase());
-        });
-
-        if (filteredRides.length === 0) {
-            homeRideList.innerHTML = '<p>No rides available.</p>';
-            return;
-        }
-
-        filteredRides.forEach(ride => {
-            const rideDiv = document.createElement('div');
-            rideDiv.className = 'ride-card';
-            rideDiv.innerHTML = `
-                <p><strong>From:</strong> ${ride.startAddress}, ${ride.startTown}</p>
-                <p><strong>To:</strong> ${ride.end}</p>
-                <p><strong>Date & Time:</strong> ${ride.date} ${ride.time}</p>
-                <p><strong>People:</strong> ${ride.people}</p>
-                <p><strong>Offer:</strong> $${ride.offer}</p>
-                <p><strong>Contact:</strong> ${ride.contact}</p>
-                <p style="font-size: 12px; color: #555;">Posted: ${new Date(ride.timestamp).toLocaleString()}</p>
-            `;
-            homeRideList.appendChild(rideDiv);
-        });
-    }
-
-    // Show all rides initially
-    renderHomeRides();
-
-    // Example of search button
-    const viewBoardBtn = document.getElementById('viewBoardBtn');
-    const searchTownBtn = document.getElementById('searchTownBtn');
-    const townInput = document.getElementById('townInput');
-
-    viewBoardBtn.addEventListener('click', () => renderHomeRides());
-    searchTownBtn.addEventListener('click', () => {
-        const town = townInput.value.trim();
-        renderHomeRides(town);
-    });
-</script>
+        // Initial render
+        renderHomeRides();
+    </script>
 </body>
 </html>
 
