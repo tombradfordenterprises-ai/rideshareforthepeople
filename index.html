@@ -5,7 +5,6 @@
     <title>Ride Board App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Global styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -50,7 +49,7 @@
             background: #0056b3;
         }
 
-        input, select {
+        input {
             padding: 10px;
             margin: 5px 0;
             width: 80%;
@@ -102,9 +101,8 @@
             <button id="searchTownBtn">Show Rides in Town</button>
             <button id="viewBoardBtn">View All Rides</button>
 
-            <!-- Live Ride List -->
             <h2>Available Rides</h2>
-            <div id="homeRideList" style="text-align:left;"></div>
+            <div id="homeRideList"></div>
         </div>
 
         <!-- Ride Form Page -->
@@ -153,6 +151,7 @@
         // Load or initialize rides
         let rides = JSON.parse(localStorage.getItem('rides')) || [];
 
+        // Utility functions
         function saveRides() {
             localStorage.setItem('rides', JSON.stringify(rides));
         }
@@ -196,7 +195,6 @@
             });
         }
 
-        // Show Page Functions
         function showPage(page) {
             homePage.classList.add('hidden');
             rideFormPage.classList.add('hidden');
@@ -214,10 +212,16 @@
             showPage(homePage);
         });
 
-        viewBoardBtn.addEventListener('click', () => renderHomeRides());
+        viewBoardBtn.addEventListener('click', () => {
+            renderHomeRides();
+            showPage(homePage);
+        });
+
         searchTownBtn.addEventListener('click', () => {
             const town = townInput.value.trim();
+            if (!town) { alert("Enter a town to search."); return; }
             renderHomeRides(town);
+            showPage(homePage);
         });
 
         postRideBtn.addEventListener('click', () => {
@@ -241,7 +245,6 @@
             rides.push(newRide);
             saveRides();
 
-            // Clear form
             startAddressInput.value = '';
             startTownInput.value = '';
             endInput.value = '';
@@ -261,4 +264,5 @@
     </script>
 </body>
 </html>
+
 
