@@ -131,23 +131,31 @@
             <button id="viewBoardBtn">View All Rides</button>
         </div>
 
-        <!-- Ride Form Page -->
-        <div id="rideFormPage" class="hidden">
-            <h2>Post a Ride</h2>
-            <input type="text" id="startAddressInput" placeholder="Starting Address"><br>
-            <input type="text" id="startTownInput" placeholder="Starting Town"><br>
-            <input type="text" id="endInput" placeholder="Destination"><br>
-            <input type="date" id="dateInput" placeholder="Date"><br>
-            <input type="time" id="timeInput" placeholder="Time"><br>
-            <input type="number" id="peopleInput" placeholder="Number of People"><br>
-            <input type="number" id="offerInput" placeholder="Offer Amount ($)"><br>
-            <input type="text" id="contactInput" placeholder="Phone or Email"><br>
-            <div class="top-buttons">
-                <button id="postRideBtn">Post Ride</button>
-                <button id="backBtn">Back</button>
-                <button id="homeBtn">Home</button>
-            </div>
-        </div>
+       <!-- Ride Form Page -->
+<div id="rideFormPage" class="hidden">
+    <h2>Post a Ride</h2>
+    <input type="text" id="startAddressInput" placeholder="Starting Address"><br>
+    <input type="text" id="startTownInput" placeholder="Starting Town"><br>
+    <input type="text" id="endInput" placeholder="Destination"><br>
+    
+    <!-- Date and Time inputs -->
+    <label for="dateInput" style="display:block; margin-top:10px;">Date:</label>
+    <input type="date" id="dateInput"><br>
+    
+    <label for="timeInput" style="display:block; margin-top:10px;">Time:</label>
+    <input type="time" id="timeInput"><br>
+
+    <input type="number" id="peopleInput" placeholder="Number of People"><br>
+    <input type="number" id="offerInput" placeholder="Offer Amount ($)"><br>
+    <input type="text" id="contactInput" placeholder="Phone or Email"><br>
+
+    <div class="top-buttons">
+        <button id="postRideBtn">Post Ride</button>
+        <button id="backBtn">Back</button>
+        <button id="homeBtn">Home</button>
+    </div>
+</div>
+
 
         <!-- Ride List Page -->
         <div id="rideListPage" class="hidden">
